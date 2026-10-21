@@ -1,20 +1,33 @@
 from datetime import date
 
+# Store inventory
 products = ["Chips", "Soda", "Candy", "Cookies", "Water", "Sandwich"]
 prices = [2.00, 2.50, 1.50, 3.00, 1.00, 5.00]
+
+# customer cart and quantities
 shopping_cart = []
 quantities = []
 
 
 def display_products():
-    """Display all available inventory items with prices."""
+    # show all products and prices
     print("\n========== AVAILABLE PRODUCTS ==========")
-    for index in range(len(products)):
-        print(f"{index + 1}. {products[index]:<10} ${prices[index]:.2f}")
+    for i in range(len(products)):
+        print(f"{i + 1}. {products[i]:<10} ${prices[i]:.2f}")
+
+
+def find_price(product_name):
+    # find the matching price for a product
+    for i in range(len(products)):
+        if products[i] == product_name:
+            return prices[i]
+    return 0.0
 
 
 def add_product():
-    """Add a product to the cart and update quantity if it already exists."""
+    # add a product to the cart or increase its quantity
+    display_products()
+
     while True:
         try:
             product_number = int(input("\nEnter product number: "))
@@ -30,28 +43,28 @@ def add_product():
 
         break
 
-    chosen_product = products[product_number - 1]
+    product_name = products[product_number - 1]
 
-    if chosen_product in shopping_cart:
-        position = shopping_cart.index(chosen_product)
-        quantities[position] += 1
-        print(f"{chosen_product} quantity increased to {quantities[position]}!")
+    if product_name in shopping_cart:
+        index = shopping_cart.index(product_name)
+        quantities[index] += 1
+        print(f"{product_name} quantity increased to {quantities[index]}!")
     else:
-        shopping_cart.append(chosen_product)
+        shopping_cart.append(product_name)
         quantities.append(1)
-        print(f"{chosen_product} was added to your cart!")
+        print(f"{product_name} was added to your cart!")
 
 
 def remove_product():
-    """Remove one item from the cart or reduce quantity by one."""
+    # remove one item or lower its quantity.
     if not shopping_cart:
         print("Your shopping cart is empty!")
         print("There is nothing to remove.")
         return
 
     print("\n========== YOUR SHOPPING CART ==========")
-    for index in range(len(shopping_cart)):
-        print(f"{index + 1}. {shopping_cart[index]:<10} - Quantity: {quantities[index]}")
+    for i in range(len(shopping_cart)):
+        print(f"{i + 1}. {shopping_cart[i]} - Quantity: {quantities[i]}")
 
     while True:
         try:
@@ -66,54 +79,69 @@ def remove_product():
 
         break
 
-    selected_index = item_number - 1
-    selected_product = shopping_cart[selected_index]
+    index = item_number - 1
+    product_name = shopping_cart[index]
 
-    if quantities[selected_index] > 1:
-        quantities[selected_index] -= 1
-        print(f"One {selected_product} was removed!")
-        print(f"{selected_product} quantity is now {quantities[selected_index]}.")
+    if quantities[index] > 1:
+        quantities[index] -= 1
+        print(f"One {product_name} was removed!")
+        print(f"{product_name} quantity is now {quantities[index]}.")
     else:
-        del shopping_cart[selected_index]
-        del quantities[selected_index]
-        print(f"{selected_product} was removed from your cart!")
+        del shopping_cart[index]
+        del quantities[index]
+        print(f"{product_name} was removed from your cart!")
 
 
 def calculate_total():
-    """Calculate the subtotal for all items in the cart using quantities."""
-    subtotal = 0.0
-    for index in range(len(shopping_cart)):
-        product_name = shopping_cart[index]
-        product_price = prices[products.index(product_name)]
-        subtotal += product_price * quantities[index]
-    return subtotal
+    # Add up the full cart total.
+    total = 0.0
+    for i in range(len(shopping_cart)):
+        total += find_price(shopping_cart[i]) * quantities[i]
+    return total
 
 
-def display_cart():
-    """Display the current cart with product price, quantity, and line total."""
+def view_cart():
+    # Show cart items and subtotal
     if not shopping_cart:
         print("Your shopping cart is empty!")
         return
 
     print("\n========== YOUR SHOPPING CART ==========")
-    print(f"{'Product':<10} {'Price':>9} {'Quantity':>9} {'Total':>10}")
-    total_items = 0
+    print(f"{'Product':<10} {'Price':>8} {'Quantity':>9} {'Total':>10}")
 
-    for index in range(len(shopping_cart)):
-        product_name = shopping_cart[index]
-        product_price = prices[products.index(product_name)]
-        product_total = product_price * quantities[index]
-        total_items += quantities[index]
-        print(f"{index + 1}. {product_name:<10} ${product_price:>6.2f} {quantities[index]:>9} ${product_total:>8.2f}")
+    total_items = 0
+    for i in range(len(shopping_cart)):
+        price = find_price(shopping_cart[i])
+        line_total = price * quantities[i]
+        total_items += quantities[i]
+        print(f"{i + 1}. {shopping_cart[i]:<10} ${price:>6.2f} {quantities[i]:>9} ${line_total:>8.2f}")
 
     print(f"\nTotal Items: {total_items}")
     print(f"Subtotal: ${calculate_total():.2f}")
 
 
+def current_total():
+    # Show the current subtotal without checkout
+    if not shopping_cart:
+        print("Your shopping cart is empty!")
+        return
+
+    print("\n========== CURRENT TOTAL ==========")
+    subtotal = 0.0
+
+    for i in range(len(shopping_cart)):
+        price = find_price(shopping_cart[i])
+        line_total = price * quantities[i]
+        subtotal += line_total
+        print(f"{shopping_cart[i]:<10} ${line_total:>7.2f}")
+
+    print(f"\nSubtotal: ${subtotal:.2f}")
+
+
 def calculate_discount(subtotal):
-    """Return the discount percentage and amount saved for the subtotal."""
+    # Decide discount based on subtotal
     if subtotal < 10:
-        discount_rate = 0
+        discount_rate = 0.00
     elif subtotal < 20:
         discount_rate = 0.05
     elif subtotal < 40:
@@ -125,18 +153,25 @@ def calculate_discount(subtotal):
     return discount_rate, amount_saved
 
 
-def print_receipt(subtotal, discount_rate, amount_saved, final_total):
-    """Display the final receipt with the current date."""
-    today = date.today().strftime("%m/%d/%Y")
+def checkout():
+    # Finish the purchase and show receipt
+    if not shopping_cart:
+        print("Your shopping cart is empty!")
+        print("You cannot check out.")
+        return
+
+    subtotal = calculate_total()
+    discount_rate, amount_saved = calculate_discount(subtotal)
+    final_total = subtotal - amount_saved
+
     print("\n========== RECEIPT ==========")
-    print(f"Date: {today}")
+    print(f"Date: {date.today().strftime('%m/%d/%Y')}")
     print()
 
-    for index in range(len(shopping_cart)):
-        product_name = shopping_cart[index]
-        product_price = prices[products.index(product_name)]
-        product_total = product_price * quantities[index]
-        print(f"{product_name:<10} ${product_total:>8.2f}")
+    for i in range(len(shopping_cart)):
+        price = find_price(shopping_cart[i])
+        line_total = price * quantities[i]
+        print(f"{shopping_cart[i]:<10} ${line_total:>8.2f}")
 
     print(f"\nSubtotal:       ${subtotal:.2f}")
     print(f"Discount:       {discount_rate * 100:.0f}%")
@@ -144,50 +179,12 @@ def print_receipt(subtotal, discount_rate, amount_saved, final_total):
     print(f"Final Total:    ${final_total:.2f}")
     print("\nThank you for shopping!")
 
-
-def checkout():
-    """Process the final checkout and display the receipt."""
-    if not shopping_cart:
-        print("Your shopping cart is empty!")
-        print("You cannot check out with no items.")
-        return False
-
-    subtotal = calculate_total()
-    discount_rate, amount_saved = calculate_discount(subtotal)
-    final_total = subtotal - amount_saved
-
-    print("\n========== CHECKOUT ==========")
-    print(f"Subtotal:       ${subtotal:.2f}")
-    print(f"Discount:       {discount_rate * 100:.0f}%")
-    print(f"Amount Saved:   ${amount_saved:.2f}")
-    print(f"Final Total:    ${final_total:.2f}")
-    print("\nThank you for shopping!")
-
-    print_receipt(subtotal, discount_rate, amount_saved, final_total)
-    return True
+    shopping_cart.clear()
+    quantities.clear()
 
 
-def display_current_total():
-    """Show the subtotal and all current items in the cart."""
-    if not shopping_cart:
-        print("Your shopping cart is empty!")
-        return
-
-    print("\n========== CURRENT TOTAL ==========")
-    subtotal = 0.0
-
-    for index in range(len(shopping_cart)):
-        product_name = shopping_cart[index]
-        product_price = prices[products.index(product_name)]
-        product_total = product_price * quantities[index]
-        subtotal += product_total
-        print(f"{product_name:<10} ${product_total:>7.2f}")
-
-    print(f"\nSubtotal: ${subtotal:.2f}")
-
-
-def show_main_menu():
-    """Display the main program menu."""
+def show_menu():
+    # Show the main menu
     print("\n========== SMART SHOPPING CART ==========")
     print("1. View Available Products")
     print("2. Add Product to Cart")
@@ -198,8 +195,9 @@ def show_main_menu():
 
 
 def main():
+    # Kep the program running until checkout
     while True:
-        show_main_menu()
+        show_menu()
 
         while True:
             try:
@@ -221,13 +219,12 @@ def main():
         elif choice == 3:
             remove_product()
         elif choice == 4:
-            display_cart()
+            view_cart()
         elif choice == 5:
-            display_current_total()
+            current_total()
         elif choice == 6:
-            if checkout():
-                break
+            checkout()
+            break
 
 
-if __name__ == "__main__":
-    main()
+main()
